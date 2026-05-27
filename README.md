@@ -1,3 +1,69 @@
+## Lab: Install SonarQube on EC2
+
+For the lab, we will keep SonarQube and PostgreSQL on the **same VM**. This is ok for training, and close enough to a small production style deployment on VMs.
+
+### 1. Create the EC2 instance
+
+* AMI: Ubuntu 22.04 LTS
+* Instance type: c7i-flex.large (SonarQube likes RAM)
+  > **Note:** The instance type **c7i-flex.large** is eligible under the AWS **credits-based free tier**, so you will not incur charges as long as you remain within your credit balance.
+
+* Root volume: 20 GB or more
+
+**Security group (SonarQube VM)**
+
+* Allow SSH (22) from your IP
+* Allow HTTP (9000) from your IP and from the Jenkins VM
+
+
+### 2. Connect to the instance
+
+```bash
+ssh -i <your-key>.pem ubuntu@<sonarqube-ec2-public-ip>
+```
+**Note:** Ensure your SSH private key is readable only by you.
+Run:
+
+```bash
+chmod 600 ~/.ssh/<your-prvate-key>  
+chown $(whoami):$(whoami) ~/.ssh/<your-prvate-key>  
+```
+
+**Suggested hostname:** `sonarqube`
+This makes the server easy to identify in SSH sessions, monitoring dashboards, and DNS-based service discovery.
+
+```bash
+# Set hostname and reload your shell
+sudo hostnamectl set-hostname sonarqube
+exec bash
+```
+
+**Setting the correct timezone**
+Set the machine timezone so logs and timestamps are consistent with your locality.
+I'll use `Asia/Kolkata`; pick the timezone that matches your location.
+
+```bash
+# set timezone to Asia/Kolkata
+sudo timedatectl set-timezone Asia/Kolkata
+
+# verify
+timedatectl status
+# or
+date
+```
+
+### 3. Install Java 21
+
+SonarQube currently requires Java 21.
+
+```bash
+sudo apt-get update
+sudo apt-get install -y openjdk-21-jre
+java -version
+```
+
+You should see Java 21.
+
 ### 4. Install PostgreSQL and create DB for SonarQube
 
 In SonarQube, the **database is critical**. It stores:
